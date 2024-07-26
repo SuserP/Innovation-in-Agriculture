@@ -4,15 +4,20 @@
 #include "RichShieldTM1637.h"
 #include "RichShieldDHT.h"
 #include "RichShieldNTC.h"
+#include "RichShieldPassiveBuzzer.h"
 
 #define CLK 10 // CLK of the TM1637 IC connect to D10 of OPEN-SMART UNO R3
 #define DIO 11 // DIO of the TM1637 IC connect to D11 of OPEN-SMART UNO R3
 
-#define LED_BLUE 6
 #define LED_RED 4
 #define LED_GREEN 5
+#define LED_BLUE 6
+#define LED_YELLOW 7
 #define BUTTON_K1 8
 #define BUTTON_K2 9
+#define PassiveBuzzerPin 3
+PassiveBuzzer buz(PassiveBuzzerPin);
+void playTone(long note, long millisecond);
 
 TM1637 disp(CLK, DIO); // create TM1637 class object disp and initialize its pins for clock and data
 DHT dht; // create DHT class object dht with data pin set to pin 12 by default in the DHT class
@@ -68,11 +73,9 @@ void loop() {
     delay(1000);
 
     if (lux > 40) {
-      digitalWrite(LED_GREEN, HIGH);
-      digitalWrite(LED_RED, LOW);
+      blink(LED_GREEN, 200, 5);
     } else {
-      digitalWrite(LED_RED, HIGH);
-      digitalWrite(LED_GREEN, LOW);
+      blink(LED_RED, 200, 5);
     }
   }
 
@@ -81,5 +84,26 @@ void loop() {
     float celsius = temper.getTemperature(); // Get temperature
     displayTemperature((int8_t)celsius); // Display temperature
     delay(1000);
+    if(celsius>31)
+    {
+      blink(LED_YELLOW, 200, 5);
+    for(int i=0; i<10; i++){
+      buz.playTone(392,100);
+      delay(100);
+      buz.playTone(1392,100);
+      delay(50);}
+      }
+    else{
+      blink(LED_BLUE, 200, 5);
+    }   
+  }
+}
+void blink(int pinNum, int blinkPeriod, int blinkTimes)
+{
+  for(int i=0; i<blinkTimes; i++){
+    digitalWrite(pinNum, HIGH);
+    delay (blinkPeriod/2);
+    digitalWrite (pinNum, LOW);
+    delay (blinkPeriod/2);
   }
 }
