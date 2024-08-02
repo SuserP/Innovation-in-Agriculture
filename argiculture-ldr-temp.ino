@@ -28,6 +28,9 @@ NTC temper(NTC_PIN);
 #define LIGHTSENSOR_PIN A2 // SIG pin of Rocker Switch module connect to A0 of IO Shield, that is pin A2 of OPEN-SMART UNO R3
 LightSensor lightsensor(LIGHTSENSOR_PIN);
 
+float luxReadings[10]; // Array to store last 10 lux readings
+int luxIndex = 0; // Index to keep track of the current position in the array
+
 void setup() {
   Serial.begin(9600); // Set baud rate of serial port to be 9600bps
   disp.init(); // The initialization of the display
@@ -37,6 +40,11 @@ void setup() {
   pinMode(BUTTON_K1, INPUT_PULLUP);
   pinMode(BUTTON_K2, INPUT_PULLUP);
   dht.begin(); // Initialize the DHT Sensor
+ 
+  // Initialize the array with zero values
+  for(int i = 0; i < 10; i++) {
+    luxReadings[i] = 0.0;
+  }
 }
 
 void displayTemperature(int8_t temperature) {
@@ -67,6 +75,17 @@ void loop() {
     float lux = 325 * pow(Rsensor, -1.4); // Calculate illuminance
     disp.display(lux); // Display illuminance
 
+     // Store the reading in the array
+    luxReadings[luxIndex] = lux;
+    luxIndex = (luxIndex + 1) % 10; // Increment and wrap around
+
+    // Print out all stored readings
+    Serial.println("Last 10 lux readings:");
+    for(int i = 0; i < 10; i++) {
+      Serial.print(luxReadings[i]);
+      Serial.print(" ");
+    }
+
     Serial.print("Illuminance is almost ");
     Serial.print(lux, 1);
     Serial.println(" lux");
@@ -84,7 +103,7 @@ void loop() {
     float celsius = temper.getTemperature(); // Get temperature
     displayTemperature((int8_t)celsius); // Display temperature
     delay(1000);
-    if(celsius>31)
+    if(celsius>28)
     {
       blink(LED_YELLOW, 200, 5);
     for(int i=0; i<10; i++){
